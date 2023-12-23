@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MNIST Digit Classifier</title>
+</head>
+<body>
+    <h1>MNIST Digit Classifier</h1>
+
+    <!-- Drawing Canvas -->
+    <canvas id="canvas" width="280" height="280" style="border:1px solid #000000;"></canvas>
+    <button id="submitBtn">Submit Drawing</button>
+    <button id="clearBtn">Clear</button>
+
+    <!-- Display Prediction Result from MNIST Data -->
+    <p>Predicted Class: {{ prediction }}</p>
+    <p>True Label: {{ true_label }}</p>
+
+    <!-- Display Prediction Result from User Drawing -->
+    <p id="predictionResult"></p>
+
+    <!-- JavaScript for Drawing and Submitting the Canvas -->
+    <script>
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var drawing = false;
+
+    initializeCanvas(); // Initialize the canvas with a white background
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mousemove', draw);
+    document.getElementById('submitBtn').addEventListener('click', submitDrawing);
+    document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+
+    function initializeCanvas() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'black'; // Set the stroke color to black
+        ctx.lineWidth = 13;        // You can also adjust line width here
+        ctx.lineCap = 'square';     // Set the line cap to round
+    }
+
+    function startDrawing(e) {
+        drawing = true;
+        draw(e);
+    }
+
+    function stopDrawing() {
+        drawing = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+    }
+
+    function submitDrawing() {
+        var image = canvas.toDataURL('image/png').replace('data:image/png;base64,', '');
+        // Send the base64 encoded image to the server
+        fetch('/submit_drawing', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: image }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            document.getElementById('predictionResult').innerText = 'Predicted Class: ' + data.prediction;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            document.getElementById('predictionResult').innerText = 'Error in prediction';
+        });
+    }
+
+    function clearCanvas() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // Refill the canvas with white before clearing
+        document.getElementById('predictionResult').innerText = '';  // Clear the prediction result
+        ctx.strokeStyle = 'black'; // Reset stroke color after clearing
+    }
+    </script>
+
+</body>
+</html>
