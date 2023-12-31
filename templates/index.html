@@ -6,15 +6,17 @@
 </head>
 <body>
     <h1>MNIST Digit Classifier</h1>
+    <!-- Model Selection Dropdown -->
+    <label for="modelSelect">Choose a model:</label>
+    <select id="modelSelect">
+        <option value="model1">Model 1</option>
+        <option value="model2">Model 2</option>
+    </select>
 
     <!-- Drawing Canvas -->
     <canvas id="canvas" width="280" height="280" style="border:1px solid #000000;"></canvas>
     <button id="submitBtn">Submit Drawing</button>
     <button id="clearBtn">Clear</button>
-
-    <!-- Display Prediction Result from MNIST Data -->
-    <p>Predicted Class: {{ prediction }}</p>
-    <p>True Label: {{ true_label }}</p>
 
     <!-- Display Prediction Result from User Drawing -->
     <p id="predictionResult"></p>
@@ -37,7 +39,7 @@
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = 'black'; // Set the stroke color to black
-        ctx.lineWidth = 13;        // You can also adjust line width here
+        ctx.lineWidth = 20;        // You can also adjust line width here
         ctx.lineCap = 'square';     // Set the line cap to round
     }
 
@@ -60,24 +62,23 @@
     }
 
     function submitDrawing() {
-        var image = canvas.toDataURL('image/png').replace('data:image/png;base64,', '');
-        // Send the base64 encoded image to the server
-        fetch('/submit_drawing', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ image: image }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-            document.getElementById('predictionResult').innerText = 'Predicted Class: ' + data.prediction;
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            document.getElementById('predictionResult').innerText = 'Error in prediction';
-        });
+            var image = canvas.toDataURL('image/png').replace('data:image/png;base64,', '');
+            var selectedModel = document.getElementById('modelSelect').value;
+            // Send the base64 encoded image and the selected model to the server
+            fetch('/submit_drawing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: image, model: selectedModel }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('predictionResult').innerText = 'Predicted Class: ' + data.prediction;
+            })
+            .catch((error) => {
+                document.getElementById('predictionResult').innerText = 'Error in prediction';
+            });
     }
 
     function clearCanvas() {
