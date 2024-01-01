@@ -38,6 +38,8 @@ def handle_drawing():
     predicted_class = np.argmax(predictions[0])
 
     return jsonify({'prediction': int(predicted_class)})
-
+@app.route('/health')
+def health_check():
+    return 'OK', 200
 if __name__ == '__main__':
     app.run(debug=True)
